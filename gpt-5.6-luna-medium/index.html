@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#070914">
+  <title>ECHO//DIVE — One Button Game</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <canvas id="game" aria-label="ECHO DIVE game"></canvas>
+    <div class="hud" aria-hidden="true">
+      <div class="brand"><span class="signal"></span> ECHO<span class="slash">//</span>DIVE</div>
+      <div class="stats"><span id="score">000000</span><span class="label">SCORE</span><span id="combo">×1</span></div>
+    </div>
+    <div class="caption" id="caption">FLIP THE SIGNAL · THREAD THE GATES</div>
+    <div class="veil" id="veil">
+      <div class="card">
+        <div class="eyebrow">ONE BUTTON / INFINITE DEPTH</div>
+        <h1>ECHO<span>//</span>DIVE</h1>
+        <p>Ride the signal through the dark. Flip your gravity to slip between the gates.</p>
+        <button id="start">PRESS TO DIVE <span>↗</span></button>
+        <div class="tiny">SPACE · TAP · CLICK</div>
+      </div>
+    </div>
+    <div class="toast" id="toast"></div>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
