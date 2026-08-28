@@ -12,7 +12,7 @@
   const reset = () => { score=0; combo=1; time=0; shake=0; ship={x:W*.23,y:H*.5,vy:0,side:1,trail:[]}; gates=[]; particles=[]; for(let i=0;i<4;i++) addGate(W*.75+i*230); updateHud(); };
   const addGate = x => { const gap=Math.max(118, H*.29-time*.0025), center=rnd(H*.23,H*.77), width=Math.max(18, H*.012); gates.push({x,center,gap,width,passed:false}); };
   const begin = () => { reset(); state='playing'; veil.classList.add('hidden'); caption.textContent='SPACE / TAP / CLICK TO FLIP'; input(); sound(220,.18,'triangle'); };
-  const input = () => { if(state==='ready'||state==='dead') return begin(); if(state!=='playing') return; ship.side*=-1; ship.vy = ship.side * (H*.010 + time*.000012); burst(ship.x,ship.y,'#55f0d0',8); sound(ship.side>0?360:270,.06); };
+  const input = () => { if(state==='ready'||state==='dead') return begin(); if(state!=='playing') return; ship.side*=-1; ship.vy = ship.side * (H*.003 + time*.000012); burst(ship.x,ship.y,'#55f0d0',8); sound(ship.side>0?360:270,.06); };
   const burst = (x,y,color,n=10) => { for(let i=0;i<n;i++) particles.push({x,y,vx:rnd(-2,2),vy:rnd(-2,2),life:rnd(20,42),max:42,color,size:rnd(1,3)}); };
   const die = () => { if(state!=='playing') return; state='dead'; best=Math.max(best,score); localStorage.echoDiveBest=best; burst(ship.x,ship.y,'#ff5ebc',28); shake=14; sound(95,.32,'sawtooth'); caption.textContent=`RUN ENDED · ${String(score).padStart(6,'0')} POINTS · BEST ${String(best).padStart(6,'0')}`; veil.classList.remove('hidden'); document.querySelector('.eyebrow').textContent='SIGNAL LOST'; document.querySelector('h1').innerHTML='TRY<span>//</span>AGAIN'; document.querySelector('.card p').textContent='Every gate is a question. Your next flip is the answer.'; start.innerHTML='RE-ENTER THE DIVE <span>↗</span>'; };
   const updateHud = () => { scoreEl.textContent=String(score).padStart(6,'0'); comboEl.textContent=`×${combo}`; };
@@ -20,7 +20,7 @@
   const update = dt => {
     if(state!=='playing') return;
     time += dt; const speed=H*.00019 + time*.000000018;
-    ship.vy += ship.side * H*.00000072 * dt; ship.y += ship.vy*dt; ship.trail.push({x:ship.x,y:ship.y}); if(ship.trail.length>15) ship.trail.shift();
+    const frameScale=dt/16; ship.vy += ship.side * H*.00000072 * frameScale; ship.y += ship.vy*frameScale; ship.trail.push({x:ship.x,y:ship.y}); if(ship.trail.length>15) ship.trail.shift();
     gates.forEach(g=>{g.x-=speed*dt; if(!g.passed && g.x < ship.x-18){g.passed=true; score+=10*combo; combo=Math.min(9,combo+1); updateHud(); burst(ship.x,ship.y,'#ffcf70',14); sound(520+combo*35,.07); if(combo>2) flash(`CLEAN THREAD  ×${combo}`); } if(g.x < -50){ gates.shift(); addGate(gates[gates.length-1].x+230); }});
     const gate=gates.find(g=>g.x>ship.x-25 && g.x<ship.x+34);
     if(ship.y<28 || ship.y>H-28 || (gate && (ship.y < gate.center-gate.gap/2 || ship.y > gate.center+gate.gap/2))) die();
