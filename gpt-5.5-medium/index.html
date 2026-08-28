@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Nullwake | GPT-5.5 Medium</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="shell" aria-label="Nullwake one-button game">
+    <canvas id="game" width="960" height="540" aria-label="Game canvas"></canvas>
+    <div class="hud" aria-hidden="true">
+      <div>
+        <span class="label">Depth</span>
+        <strong id="score">0</strong>
+      </div>
+      <div>
+        <span class="label">Chain</span>
+        <strong id="chain">x1</strong>
+      </div>
+      <div>
+        <span class="label">Best</span>
+        <strong id="best">0</strong>
+      </div>
+    </div>
+    <div class="overlay" id="overlay" aria-live="polite">
+      <p class="kicker">One button survival</p>
+      <h1>Nullwake</h1>
+      <p id="message">Phase between lanes. Cross the wake at the exact beat.</p>
+      <button id="startButton" type="button">Press Space / Tap</button>
+    </div>
+  </main>
+  <script src="./game.js"></script>
+</body>
+</html>
