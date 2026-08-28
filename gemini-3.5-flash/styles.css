@@ -1,0 +1,466 @@
+:root {
+  --neon-cyan: #00f3ff;
+  --neon-magenta: #ff0055;
+  --neon-orange: #ffaa00;
+  --neon-purple: #bd00ff;
+  --glass-bg: rgba(6, 10, 26, 0.65);
+  --glass-border: rgba(0, 243, 255, 0.2);
+  --glass-border-red: rgba(255, 0, 85, 0.2);
+  --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #03050d;
+  font-family: var(--font-stack);
+  color: #f0f3f8;
+}
+
+#game-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+}
+
+/* UI Layering - pointers bypass empty areas, click only on panels/buttons */
+.ui-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Heads Up Display */
+#hud {
+  height: auto;
+  padding: env(safe-area-inset-top, 20px) 20px 20px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+.hud-left, .hud-right {
+  display: flex;
+  gap: 12px;
+  pointer-events: auto;
+}
+
+.stat-box {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  padding: 8px 16px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  min-width: 90px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.stat-box .label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(240, 243, 248, 0.5);
+  margin-bottom: 2px;
+}
+
+.stat-box .value {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
+}
+
+.stat-box .value.yellow {
+  color: var(--neon-orange);
+  text-shadow: 0 0 8px rgba(255, 170, 0, 0.5);
+}
+
+/* Sound / Mute Button */
+.icon-btn {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  fill: var(--neon-cyan);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.icon-btn:hover, .icon-btn:active {
+  background: rgba(0, 243, 255, 0.15);
+  border-color: var(--neon-cyan);
+  fill: #fff;
+  transform: scale(1.05);
+}
+
+.icon-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Screen Containers (Start, Game Over) */
+#screenContainer {
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 450px;
+  width: 100%;
+  padding: 40px 30px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 
+              0 0 30px rgba(0, 243, 255, 0.1),
+              inset 0 1px 2px rgba(255, 255, 255, 0.1);
+  transform: scale(0.95);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+  pointer-events: auto;
+}
+
+.screen.active {
+  display: flex;
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Game Over specific glow */
+#gameOverScreen {
+  border-color: var(--glass-border-red);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 
+              0 0 30px rgba(255, 0, 85, 0.1),
+              inset 0 1px 2px rgba(255, 255, 255, 0.1);
+}
+
+/* Typography */
+.title {
+  font-size: 48px;
+  font-weight: 900;
+  letter-spacing: 6px;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3),
+               0 0 20px var(--neon-cyan),
+               0 0 40px var(--neon-purple);
+  margin-bottom: 4px;
+}
+
+.title.red {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3),
+               0 0 20px var(--neon-magenta),
+               0 0 40px rgba(255, 0, 85, 0.5);
+}
+
+.subtitle {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 8px;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 8px rgba(0, 243, 255, 0.4);
+  margin-bottom: 30px;
+  text-transform: uppercase;
+}
+
+.death-text {
+  font-size: 14px;
+  color: rgba(240, 243, 248, 0.8);
+  margin-bottom: 25px;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* Instructions Card */
+.instructions-card {
+  background: rgba(3, 5, 13, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 30px;
+  width: 100%;
+}
+
+.control-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #03050d;
+  background: var(--neon-cyan);
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+}
+
+.instruction-text {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.6;
+  color: #f0f3f8;
+  margin-bottom: 12px;
+}
+
+.key {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 13px;
+  color: var(--neon-cyan);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.instruction-subtext {
+  font-size: 12px;
+  color: rgba(240, 243, 248, 0.65);
+  line-height: 1.5;
+}
+
+/* Results Card on Game Over */
+.results-card {
+  background: rgba(3, 5, 13, 0.6);
+  border: 1px solid rgba(255, 0, 85, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 30px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: rgba(240, 243, 248, 0.6);
+}
+
+.result-val {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 15px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.result-row.total {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 12px;
+  font-size: 14px;
+  color: #fff;
+}
+
+.result-row.total .result-val {
+  font-size: 20px;
+}
+
+.yellow {
+  color: var(--neon-orange) !important;
+  text-shadow: 0 0 10px rgba(255, 170, 0, 0.4);
+}
+
+/* Pulsating CTA Buttons */
+.pulse-btn {
+  background: transparent;
+  border: 2px solid var(--neon-cyan);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  padding: 15px 40px;
+  border-radius: 30px;
+  cursor: pointer;
+  outline: none;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(0, 243, 255, 0.2), 
+              inset 0 0 15px rgba(0, 243, 255, 0.1);
+  animation: pulseCyan 2s infinite;
+}
+
+.pulse-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: all 0.5s ease;
+}
+
+.pulse-btn:hover::before {
+  left: 100%;
+}
+
+.pulse-btn:hover {
+  background: var(--neon-cyan);
+  color: #03050d;
+  box-shadow: 0 0 25px rgba(0, 243, 255, 0.6);
+  transform: translateY(-2px);
+}
+
+.pulse-btn:active {
+  transform: translateY(1px);
+}
+
+/* Red version for Game Over restart */
+.pulse-btn.text-glow-red {
+  border-color: var(--neon-magenta);
+  box-shadow: 0 0 15px rgba(255, 0, 85, 0.2), 
+              inset 0 0 15px rgba(255, 0, 85, 0.1);
+  animation: pulseMagenta 2s infinite;
+}
+
+.pulse-btn.text-glow-red:hover {
+  background: var(--neon-magenta);
+  color: #03050d;
+  box-shadow: 0 0 25px rgba(255, 0, 85, 0.6);
+}
+
+.restart-hint {
+  font-size: 11px;
+  color: rgba(240, 243, 248, 0.4);
+  margin-top: 12px;
+  letter-spacing: 0.5px;
+}
+
+/* Score / Altitude Record containers at bottom */
+.high-score-container {
+  margin-top: 30px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: rgba(240, 243, 248, 0.4);
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.high-score-container .val {
+  color: var(--neon-cyan);
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.high-score-container .divider {
+  color: rgba(255, 255, 255, 0.1);
+}
+
+/* Animations */
+@keyframes pulseCyan {
+  0% {
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2), inset 0 0 10px rgba(0, 243, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(0, 243, 255, 0.5), inset 0 0 15px rgba(0, 243, 255, 0.2);
+    border-color: #fff;
+  }
+  100% {
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2), inset 0 0 10px rgba(0, 243, 255, 0.1);
+  }
+}
+
+@keyframes pulseMagenta {
+  0% {
+    box-shadow: 0 0 15px rgba(255, 0, 85, 0.2), inset 0 0 10px rgba(255, 0, 85, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(255, 0, 85, 0.5), inset 0 0 15px rgba(255, 0, 85, 0.2);
+    border-color: #fff;
+  }
+  100% {
+    box-shadow: 0 0 15px rgba(255, 0, 85, 0.2), inset 0 0 10px rgba(255, 0, 85, 0.1);
+  }
+}
+
+/* Media Queries for responsive HUD and sizing on mobile */
+@media (max-width: 480px) {
+  .screen {
+    padding: 30px 20px;
+  }
+  
+  .title {
+    font-size: 38px;
+    letter-spacing: 4px;
+  }
+  
+  .subtitle {
+    font-size: 11px;
+    letter-spacing: 5px;
+  }
+  
+  .stat-box {
+    padding: 6px 12px;
+    min-width: 80px;
+  }
+  
+  .stat-box .value {
+    font-size: 15px;
+  }
+  
+  .pulse-btn {
+    padding: 12px 30px;
+    font-size: 13px;
+  }
+}
