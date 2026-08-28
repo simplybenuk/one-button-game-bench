@@ -6,12 +6,12 @@
   let W, H, dpr, state = 'ready', last = 0, time = 0, score = 0, combo = 1, best = +localStorage.echoDiveBest || 0;
   let ship, gates = [], particles = [], stars = [], shake = 0, audio;
   const rnd = (a,b) => a + Math.random() * (b-a);
-  const resize = () => { dpr = Math.min(2, devicePixelRatio || 1); W = innerWidth; H = innerHeight; canvas.width = W*dpr; canvas.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); if (state === 'ready') initStars(); };
+  const resize = () => { dpr = Math.min(2, devicePixelRatio || 1); W = Math.max(320, innerWidth); H = Math.max(420, innerHeight); canvas.width = W*dpr; canvas.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); if (state === 'ready') initStars(); };
   const initStars = () => { stars = Array.from({length: Math.max(50, Math.floor(W*H/11000))}, () => ({x:rnd(0,W), y:rnd(0,H), z:rnd(.25,1), s:rnd(.5,2)})); };
   const sound = (freq, duration=.08, type='sine') => { try { audio ||= new (AudioContext || webkitAudioContext)(); const o=audio.createOscillator(), g=audio.createGain(); o.type=type; o.frequency.value=freq; g.gain.setValueAtTime(.035,audio.currentTime); g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration); o.connect(g).connect(audio.destination); o.start(); o.stop(audio.currentTime+duration); } catch(e) {} };
   const reset = () => { score=0; combo=1; time=0; shake=0; ship={x:W*.23,y:H*.5,vy:0,side:1,trail:[]}; gates=[]; particles=[]; for(let i=0;i<4;i++) addGate(W*.75+i*230); updateHud(); };
   const addGate = x => { const gap=Math.max(118, H*.29-time*.0025), center=rnd(H*.23,H*.77), width=Math.max(18, H*.012); gates.push({x,center,gap,width,passed:false}); };
-  const begin = () => { reset(); state='playing'; veil.classList.add('hidden'); caption.textContent='SPACE / TAP / CLICK TO FLIP'; input(); sound(220,.18,'triangle'); };
+  const begin = () => { reset(); state='playing'; veil.classList.add('hidden'); caption.textContent='SPACE / TAP / CLICK TO FLIP'; sound(220,.18,'triangle'); };
   const input = () => { if(state==='ready'||state==='dead') return begin(); if(state!=='playing') return; ship.side*=-1; ship.vy = ship.side * (H*.003 + time*.000012); burst(ship.x,ship.y,'#55f0d0',8); sound(ship.side>0?360:270,.06); };
   const burst = (x,y,color,n=10) => { for(let i=0;i<n;i++) particles.push({x,y,vx:rnd(-2,2),vy:rnd(-2,2),life:rnd(20,42),max:42,color,size:rnd(1,3)}); };
   const die = () => { if(state!=='playing') return; state='dead'; best=Math.max(best,score); localStorage.echoDiveBest=best; burst(ship.x,ship.y,'#ff5ebc',28); shake=14; sound(95,.32,'sawtooth'); caption.textContent=`RUN ENDED · ${String(score).padStart(6,'0')} POINTS · BEST ${String(best).padStart(6,'0')}`; veil.classList.remove('hidden'); document.querySelector('.eyebrow').textContent='SIGNAL LOST'; document.querySelector('h1').innerHTML='TRY<span>//</span>AGAIN'; document.querySelector('.card p').textContent='Every gate is a question. Your next flip is the answer.'; start.innerHTML='RE-ENTER THE DIVE <span>↗</span>'; };
@@ -37,5 +37,5 @@
     ctx.restore();
   };
   const frame = now => { const dt=Math.min(32,now-last||16); last=now; update(dt); draw(); requestAnimationFrame(frame); };
-  addEventListener('resize',resize); addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();input();}}); canvas.addEventListener('pointerdown',e=>{e.preventDefault();input();}); veil.addEventListener('pointerdown',e=>{if(e.target!==start){e.preventDefault();input();}}); start.addEventListener('click',e=>{e.stopPropagation();input();}); resize(); reset(); requestAnimationFrame(frame);
+  addEventListener('resize',resize); addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();input();}}); canvas.addEventListener('pointerdown',e=>{e.preventDefault();input();}); veil.addEventListener('pointerdown',e=>{e.preventDefault();input();}); resize(); reset(); requestAnimationFrame(frame);
 })();
