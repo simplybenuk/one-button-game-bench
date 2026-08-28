@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#050711">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='9' fill='%2353f4ff'/%3E%3Ccircle cx='32' cy='32' r='21' fill='none' stroke='%2353f4ff' stroke-width='3'/%3E%3C/svg%3E">
+  <title>Dead Air Relay</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main id="game" aria-label="Dead Air Relay, a one-button orbital timing game">
+    <canvas id="screen"></canvas>
+    <div class="grain" aria-hidden="true"></div>
+    <header class="hud">
+      <div class="brand"><i></i> DEAD AIR <span>/ RELAY</span></div>
+      <div class="score"><small>LINKS</small><b id="score">00</b></div>
+      <div class="best"><small>BEST</small><b id="best">00</b></div>
+    </header>
+    <section id="message" class="message">
+      <p class="eyebrow" id="eyebrow">SIGNAL FOUND</p>
+      <h1 id="title">CATCH THE<br><em>NEXT BEACON</em></h1>
+      <p id="instructions">You orbit automatically.<br>Release on the tangent. Ping once in flight.</p>
+      <div id="prompt" class="prompt"><span></span> TAP / SPACE</div>
+    </section>
+    <div id="actionHint" class="action-hint">RELEASE</div>
+    <div id="quality" class="quality">CLEAN LINK <b>+100</b></div>
+    <footer>
+      <span id="status">ORBIT LOCKED</span>
+      <span class="sound">SOUND ON</span>
+    </footer>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
