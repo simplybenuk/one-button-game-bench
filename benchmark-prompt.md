@@ -23,6 +23,12 @@ Your game must run from:
 
 Your directory must contain everything required to run your game.
 
+Your directory must also contain a `README.md` that briefly explains:
+
+- What the game is
+- How the one-button control works
+- What the player is trying to do
+
 ## The Challenge
 
 The player has exactly **one control**:
@@ -61,6 +67,7 @@ Invent the:
 - Must be playable immediately after loading
 - Restart must be possible using the same single control
 - Entry point must be `index.html` in your assigned directory
+- Include a `README.md` in your assigned directory describing the game and controls
 
 ## Game Constraints
 

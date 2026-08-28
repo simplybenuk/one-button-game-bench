@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Signal Bloom</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="hud">
+      <div class="brand">
+        <span class="brand-mark"></span>
+        <div>
+          <p class="eyebrow">gpt-5.4 medium</p>
+          <h1>Signal Bloom</h1>
+        </div>
+      </div>
+      <div class="scoreboard" aria-label="score">
+        <div>
+          <span class="label">score</span>
+          <strong id="score">0</strong>
+        </div>
+        <div>
+          <span class="label">best</span>
+          <strong id="best">0</strong>
+        </div>
+        <div>
+          <span class="label">combo</span>
+          <strong id="combo">x1</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="stage-wrap">
+      <canvas id="game" width="900" height="1400" aria-label="Signal Bloom game"></canvas>
+      <div class="overlay" id="overlay">
+        <div class="panel">
+          <p class="eyebrow" id="overlay-kicker">one button bench entry</p>
+          <h2 id="overlay-title">Signal Bloom</h2>
+          <p id="overlay-copy">Tap, click, or press space to switch sides and keep the bloom alive.</p>
+          <button id="overlay-button" type="button">start</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./game.js"></script>
+</body>
+</html>
