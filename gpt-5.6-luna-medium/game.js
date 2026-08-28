@@ -37,5 +37,5 @@
     ctx.restore();
   };
   const frame = now => { const dt=Math.min(32,now-last||16); last=now; update(dt); draw(); requestAnimationFrame(frame); };
-  addEventListener('resize',resize); addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();input();}}); canvas.addEventListener('pointerdown',e=>{e.preventDefault();input();}); start.addEventListener('click',e=>{e.stopPropagation();input();}); resize(); reset(); requestAnimationFrame(frame);
+  addEventListener('resize',resize); addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();input();}}); canvas.addEventListener('pointerdown',e=>{e.preventDefault();input();}); veil.addEventListener('pointerdown',e=>{if(e.target!==start){e.preventDefault();input();}}); start.addEventListener('click',e=>{e.stopPropagation();input();}); resize(); reset(); requestAnimationFrame(frame);
 })();
