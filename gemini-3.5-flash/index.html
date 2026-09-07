@@ -2,97 +2,98 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>PULSAR: Orbital Escape</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Q-SWING // Quantum Node Surfer</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="game.js" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 </head>
 <body>
   <div id="game-container">
-    <!-- Game Canvas -->
     <canvas id="gameCanvas"></canvas>
-
-    <!-- Glassmorphic HUD overlay -->
-    <div id="hud" class="ui-layer">
-      <div class="hud-left">
+    
+    <!-- UI Overlay -->
+    <div id="ui-overlay" class="ui-layer">
+      <div class="top-bar">
         <div class="stat-box">
-          <span class="label">SCORE</span>
-          <span id="scoreVal" class="value">00000</span>
+          <span class="label">SHIELD</span>
+          <div class="shield-container">
+            <div class="shield-bar" id="shield-bar"></div>
+            <div class="shield-grid">
+              <div class="shield-cell"></div>
+              <div class="shield-cell"></div>
+              <div class="shield-cell"></div>
+            </div>
+          </div>
         </div>
-        <div class="stat-box">
-          <span class="label">MULTIPLIER</span>
-          <span id="multiplierVal" class="value yellow">x1.0</span>
+        <div class="stat-box center-stat">
+          <span class="label">SCORE</span>
+          <span class="value" id="score-val">00000</span>
+        </div>
+        <div class="stat-box right-stat">
+          <span class="label">HEIGHT</span>
+          <span class="value" id="height-val">0m</span>
         </div>
       </div>
-      <div class="hud-right">
-        <div class="stat-box">
-          <span class="label">ALTITUDE</span>
-          <span id="altitudeVal" class="value">0m</span>
-        </div>
-        <button id="muteBtn" class="icon-btn" aria-label="Toggle Sound">
-          <svg id="soundOnIcon" viewBox="0 0 24 24">
-            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.25-2.5-4.01v8.02c1.48-.76 2.5-2.24 2.5-4.01zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-          </svg>
-          <svg id="soundOffIcon" class="hidden" viewBox="0 0 24 24">
-            <path d="M16.5 12c0-1.77-1.02-3.25-2.5-4.01v2.51l2.48 2.48c.01-.32.02-.64.02-.98zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
-          </svg>
-        </button>
+      
+      <!-- Audio Toggle Button -->
+      <button id="audio-toggle" class="icon-btn" title="Toggle Sound">
+        <svg id="sound-on-svg" viewBox="0 0 24 24" class="svg-icon">
+          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+        </svg>
+        <svg id="sound-off-svg" viewBox="0 0 24 24" class="svg-icon hidden">
+          <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.21.05-.42.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Screen States (Menus) -->
+    <div id="screen-start" class="screen-layer active">
+      <div class="glitch-title" data-text="Q-SWING">Q-SWING</div>
+      <div class="subtitle">QUANTUM NODE SURFER</div>
+      
+      <div class="instructions-card">
+        <p class="control-tip">ONE BUTTON CONTROL</p>
+        <div class="control-badge">SPACE / CLICK / TAP</div>
+        <ul class="instructions-list">
+          <li><span class="bullet cyan"></span> <strong>TAP</strong> when in range of a node to <strong>HOOK</strong> and swing.</li>
+          <li><span class="bullet cyan"></span> <strong>TAP AGAIN</strong> to <strong>RELEASE</strong> with momentum.</li>
+          <li><span class="bullet gold"></span> Collect <strong>DATA PACKETS</strong> to score.</li>
+          <li><span class="bullet red"></span> Watch out for <strong>DECAYING NODES</strong> and <strong>VOLATILE REEF</strong>.</li>
+        </ul>
+      </div>
+
+      <div class="high-score-display">
+        PERSONAL BEST: <span id="high-score-val">00000</span>
+      </div>
+
+      <div class="start-prompt blink">
+        TAP / PRESS SPACE TO INITIATE LINK
       </div>
     </div>
 
-    <!-- Screen Overlays -->
-    <div id="screenContainer" class="ui-layer">
-      <!-- Title / Start Screen -->
-      <div id="startScreen" class="screen active">
-        <h1 class="title">PULSAR</h1>
-        <p class="subtitle">ORBITAL ESCAPE</p>
-        
-        <div class="instructions-card">
-          <div class="control-badge">ONE-BUTTON CONTROL</div>
-          <p class="instruction-text">
-            Press <span class="key">SPACE</span>, <span class="key">TAP</span>, or <span class="key">CLICK</span> to launch from orbit.
-          </p>
-          <p class="instruction-subtext">
-            Time your escape to slingshot to higher planets. Collect star energy and outrun the rising cosmic void.
-          </p>
+    <div id="screen-gameover" class="screen-layer">
+      <div class="gameover-title">LINK SEVERED</div>
+      <div class="gameover-stats">
+        <div class="gameover-stat">
+          <span class="label">FINAL SCORE</span>
+          <span class="value cyan" id="go-score">0</span>
         </div>
-
-        <button id="startBtn" class="pulse-btn">LAUNCH MISSION</button>
-
-        <div class="high-score-container">
-          <span class="lbl">HIGH ALTITUDE:</span>
-          <span id="highAltitude" class="val">0m</span>
-          <span class="divider">|</span>
-          <span class="lbl">HIGH SCORE:</span>
-          <span id="highScore" class="val">0</span>
+        <div class="gameover-stat">
+          <span class="label">MAX HEIGHT</span>
+          <span class="value magenta" id="go-height">0m</span>
+        </div>
+        <div class="gameover-stat" id="new-high-score-badge">
+          <span class="value gold blink">NEW RECORD!</span>
         </div>
       </div>
-
-      <!-- Game Over Screen -->
-      <div id="gameOverScreen" class="screen">
-        <h2 class="title red">PROBE LOST</h2>
-        <p id="deathReason" class="death-text">Consumed by the cosmic void.</p>
-
-        <div class="results-card">
-          <div class="result-row">
-            <span>ALTITUDE CLIMBED</span>
-            <span id="finalAltitude" class="result-val">0m</span>
-          </div>
-          <div class="result-row">
-            <span>CRYSTALS ACQUIRED</span>
-            <span id="finalCrystals" class="result-val">0</span>
-          </div>
-          <div class="result-row total">
-            <span>FINAL SCORE</span>
-            <span id="finalScore" class="result-val yellow">00000</span>
-          </div>
-        </div>
-
-        <button id="restartBtn" class="pulse-btn text-glow-red">DEPLOY NEW PROBE</button>
-        <p class="restart-hint">Or press Space / Tap anywhere to deploy</p>
+      
+      <div class="restart-prompt blink">
+        TAP / PRESS SPACE TO RE-BOOT
       </div>
     </div>
   </div>
-
-  <script src="game.js"></script>
 </body>
 </html>

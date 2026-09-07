@@ -1,43 +1,38 @@
-# PULSAR: Orbital Escape
+# Q-SWING // Quantum Node Surfer
 
-An elegant, timing-based orbital mechanics climber built for the One-Button Game Benchmark.
+A fast-paced, high-fidelity one-button browser game. You play as a glowing quantum wave surfing across the nodes of a decentralized supercomputer network. 
 
-## What is the game?
+## How to Play
 
-**PULSAR: Orbital Escape** is an arcade-style vertical climber where the player pilots a deep-space exploration probe ascending through procedurally generated planetary systems. A surging wave of energetic red particle energy—the **Cosmic Void**—is rising from the bottom of the star system, forcing you to constantly climb. 
+You have exactly **one control**:
 
-To climb, you must slingshot from the orbit of one planet to another, collecting energy crystals, building multipliers, and avoiding drifting into the freezing cold of deep space or getting consumed by the Void.
+*   **Desktop:** Press `Space`
+*   **Mobile / Tablet:** Tap anywhere on the screen
+*   **Mouse:** Click anywhere on the screen
 
-## The One-Button Control
+Everything is handled by this single input!
 
-The entire game is played using **exactly one button** (the unified interface supports `Space` on desktop, a tap on mobile, or left click with a mouse):
+### Controls Breakdown
 
-- **In Menus:** Starts or restarts the game.
-- **In Game:** Launches the probe tangentially out of its current orbit.
+1.  **Free-flight:** While traveling through space, look at the closest node in range. A dotted link line will indicate which node you are locking onto.
+2.  **Hook:** Press the button/tap to **latch/hook** onto the node. You will instantly enter orbit and swing around it, gaining centripetal force.
+3.  **Release:** Press the button/tap again to **release** and fly off tangentially with your built-up velocity!
+4.  **Restart:** After a Game Over, simply press/tap again to reboot the system and start a new run.
 
-When the probe is flying through space, it will automatically get captured by the gravitational field of any planet it crosses.
+---
 
-## Objectives & Scoring
+## Game Objectives
 
-1. **Ascend to High Altitudes:** Your distance climbed is tracked in meters.
-2. **Collect Energy Crystals:** Crystals float in orbits or between planets. Gathering them increases your score and boosts your multiplier.
-3. **Build Multiplier Combos:**
-   - Slingshotting to new planets increases your multiplier.
-   - Collecting crystals increases your multiplier.
-   - Returning to a planet you already visited, or getting stuck looping, decays your multiplier.
-4. **Survive the Hazards:**
-   - **The Cosmic Void:** Constantly rises from the bottom of the viewport. It moves faster as you go higher. Staying in orbit too long will get you consumed.
-   - **Decaying Planets:** Some purple-hued planets are unstable. Staying on them causes their orbits to decay and shrink until the core collapses, forcefully ejecting you.
+*   **Climb Higher:** Work your way upward through the network. The higher you go, the faster you travel, the denser the hazards become, and the more complex node patterns generate.
+*   **Collect Data Packets:** Nab glowing yellow stars to boost your score (+150 pts each).
+*   **Preserve Shields:** You start with 3 shield cells. Colliding with moving unstable hazards or getting caught in decaying node explosions will deplete your shields. If you fall off the bottom of the screen or completely lose your shield, your link is severed (Game Over).
 
-## Features & Implementation
+---
 
-- **Procedural Synthesizer:** Built completely on the Web Audio API. Generates atmospheric bass/harmonic space pads and dynamic, multi-frequency sound effects (launch swoops, major-chord capture chime, crystalline pick-ups, sub-bass explosion) procedurally without external assets.
-- **Dynamic Physics Capture:** Orbit direction is computed dynamically on capture. Slingshotting is physically accurate based on the tangent angle at the moment of launch, and planets apply gravitational attraction to the probe in flight.
-- **Diverse Planet Archetypes:**
-  - *Standard Planets:* Reliable, standard orbits.
-  - *Pulsars:* Small, rapid-spinning pink bodies with high tangential speeds.
-  - *Gas Giants:* Massive orange gravity wells with larger capture zones but slower rotation speeds.
-  - *Magnet Planets:* Neon cyan magnetic fields that pull crystals directly towards the probe.
-  - *Decaying Planets:* Collapsing violet structures that crumble and shrink under the probe's weight.
-- **Juicy Graphics:** Custom parallax starfields, vector glow canvas rendering, fluid rocket trails, shatter/capture particle blasts, and fluid CSS-glassmorphic HUD and card structures.
-- **Adaptive Screen Scaling:** Maintains consistent game layout and aspect ratios on any resolution (mobile or desktop).
+## Advanced Quantum Nodes & Mechanics
+
+*   **Stable Node (Cyan):** Your trusty anchors. Safe to swing on indefinitely.
+*   **Decaying Node (Red):** Activates as soon as you latch onto it. A circular countdown timer is shown; if you do not release within **1.5 seconds**, the node explodes, causing a major blast wave that depletes 1 shield! Release safely beforehand for momentum.
+*   **Overcharge Booster Node (Green):** Spin you faster and launch you with an extreme velocity multiplier (1.35x), complete with screen shake and hyper-trails.
+*   **Screen Shake & Parallax:** Fluid visuals with a retro cyber grid parallax background, custom particle explosions, and impact-driven camera shaking.
+*   **Synthesized Web Audio:** Procedurally generated synth sound effects (laser zips, wind whooshes, chime arpeggios, white-noise crashes) and a dynamic bassline/arpeggiation system that keeps you in the zone. Toggle mute at any time using the speaker icon!
