@@ -14,9 +14,17 @@ const storageKey = "nullwake-best";
 let state;
 let lastTime = 0;
 let audio;
-let best = Number(localStorage.getItem(storageKey) || 0);
+let best = loadBest();
 
 bestEl.textContent = String(best);
+
+function loadBest() {
+  try {
+    return Number(localStorage.getItem(storageKey) || 0);
+  } catch {
+    return 0;
+  }
+}
 
 function reset() {
   state = {
@@ -37,7 +45,7 @@ function reset() {
     particles: [],
     stars: Array.from({ length: 120 }, () => ({
       x: Math.random() * base.width,
-      y: Math.random() * base.height,
+      y: Math.random() * viewHeight(),
       r: 0.4 + Math.random() * 1.9,
       s: 0.14 + Math.random() * 0.9
     }))
@@ -75,13 +83,22 @@ function action(event) {
 }
 
 window.addEventListener("keydown", (event) => {
-  if (event.code === "Space") action(event);
+  if (event.code === "Space" && !event.repeat) action(event);
 });
 canvas.addEventListener("pointerdown", action);
 overlay.addEventListener("pointerdown", action);
 
 function laneY(lane) {
-  return lane === 0 ? base.height * 0.36 : base.height * 0.64;
+  const height = viewHeight();
+  if (height > base.height * 1.2) {
+    const gap = Math.min(154, height * 0.13);
+    return height * 0.5 + (lane === 0 ? -gap : gap);
+  }
+  return lane === 0 ? height * 0.36 : height * 0.64;
+}
+
+function viewHeight() {
+  return base.width * (canvas.height / canvas.width);
 }
 
 function playerX() {
@@ -134,9 +151,10 @@ function update(dt) {
   for (const gate of state.gates) {
     const inside = px > gate.x - gate.width * 0.5 && px < gate.x + gate.width * 0.5;
     if (inside && !gate.passed) {
+      gate.passed = true;
       if (state.targetLane === gate.openLane) scoreGate(gate, py);
       else crash();
-      gate.passed = true;
+      if (state.mode !== "playing") break;
     }
   }
 
@@ -161,7 +179,11 @@ function crash() {
   const finalScore = Math.floor(state.distance);
   if (finalScore > best) {
     best = finalScore;
-    localStorage.setItem(storageKey, String(best));
+    try {
+      localStorage.setItem(storageKey, String(best));
+    } catch {
+      // The run still works when persistent storage is unavailable.
+    }
     bestEl.textContent = String(best);
   }
   state.shake = 8;
@@ -173,12 +195,14 @@ function crash() {
 }
 
 function driftStars(dt, speed) {
+  const height = viewHeight();
   for (const star of state.stars) {
     star.x -= speed * star.s * dt;
     if (star.x < -8) {
       star.x = base.width + 8;
-      star.y = Math.random() * base.height;
+      star.y = Math.random() * height;
     }
+    if (star.y > height + 8) star.y = Math.random() * height;
   }
 }
 
@@ -210,13 +234,10 @@ function updateParticles(dt) {
 }
 
 function draw() {
-  const scale = Math.min(canvas.width / base.width, canvas.height / base.height);
-  const ox = (canvas.width - base.width * scale) * 0.5;
-  const oy = (canvas.height - base.height * scale) * 0.5;
+  const scale = canvas.width / base.width;
 
   ctx.save();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.translate(ox, oy);
   ctx.scale(scale, scale);
 
   if (state.shake > 0) {
@@ -233,18 +254,19 @@ function draw() {
 }
 
 function drawBackground() {
-  const gradient = ctx.createLinearGradient(0, 0, base.width, base.height);
+  const height = viewHeight();
+  const gradient = ctx.createLinearGradient(0, 0, base.width, height);
   gradient.addColorStop(0, "#06100e");
   gradient.addColorStop(0.55, "#0c1712");
   gradient.addColorStop(1, "#16120b");
   ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, base.width, base.height);
+  ctx.fillRect(0, 0, base.width, height);
 
   ctx.globalAlpha = 0.78;
   for (const star of state.stars) {
     ctx.fillStyle = star.s > 0.75 ? "#dffcf2" : "#6db49b";
     ctx.beginPath();
-    ctx.arc(star.x, star.y, star.r, 0, TAU);
+    ctx.arc(star.x, star.y, star.r * (height > base.height * 1.2 ? 1.15 : 1), 0, TAU);
     ctx.fill();
   }
   ctx.globalAlpha = 1;
@@ -252,7 +274,7 @@ function drawBackground() {
   const scan = 26;
   ctx.strokeStyle = "rgba(239, 248, 242, 0.035)";
   ctx.lineWidth = 1;
-  for (let y = (state.time * 38) % scan; y < base.height; y += scan) {
+  for (let y = (state.time * 38) % scan; y < height; y += scan) {
     ctx.beginPath();
     ctx.moveTo(0, y);
     ctx.lineTo(base.width, y);
@@ -352,11 +374,12 @@ function drawParticles() {
 }
 
 function drawVignette() {
-  const gradient = ctx.createRadialGradient(base.width * 0.45, base.height * 0.5, 120, base.width * 0.5, base.height * 0.5, 560);
+  const height = viewHeight();
+  const gradient = ctx.createRadialGradient(base.width * 0.45, height * 0.5, 120, base.width * 0.5, height * 0.5, Math.max(560, height * 0.55));
   gradient.addColorStop(0, "rgba(0,0,0,0)");
   gradient.addColorStop(1, "rgba(0,0,0,0.55)");
   ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, base.width, base.height);
+  ctx.fillRect(0, 0, base.width, height);
 }
 
 function resize() {
@@ -367,8 +390,17 @@ function resize() {
 }
 
 function initAudio() {
-  if (audio) return;
-  audio = new (window.AudioContext || window.webkitAudioContext)();
+  if (audio) {
+    if (audio.state === "suspended") audio.resume().catch(() => {});
+    return;
+  }
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return;
+  try {
+    audio = new AudioContext();
+  } catch {
+    audio = null;
+  }
 }
 
 function pulseTone(freq, duration, type, gainValue) {
@@ -393,7 +425,7 @@ function frame(time) {
   requestAnimationFrame(frame);
 }
 
-reset();
 resize();
+reset();
 window.addEventListener("resize", resize);
 requestAnimationFrame(frame);
