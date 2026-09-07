@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08151e"><title>Threadlight · One button, twenty stars</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#08151e;color:#e6efe9;font-family:Arial,Helvetica,sans-serif}body{touch-action:none;user-select:none;-webkit-user-select:none}canvas{display:block;width:100%;height:100%;outline:none}#caption{position:fixed;bottom:max(17px,env(safe-area-inset-bottom));left:0;width:100%;text-align:center;pointer-events:none;font-size:10px;letter-spacing:2px;color:#7c969e}#caption b{font-weight:400;color:#b8cece}@media(max-width:500px){#caption{font-size:8px;letter-spacing:1.5px}}
+</style>
+</head>
+<body><canvas id="game" tabindex="0" aria-label="Threadlight. Press Space, click, or tap when the dotted path points into the next star's ring. Connect twenty stars. Three sparks." role="application"></canvas><div id="caption"><b>SPACE / CLICK / TAP</b> &nbsp; TO SEND YOUR SPARK</div>
+<script>
+'use strict';
+const canvas=document.querySelector('canvas'),ctx=canvas.getContext('2d');
+let W,H,scale,dpr,clock=0,last=0,audio,mode='ready',run;
+let best=0;try{best=Number(localStorage.getItem('threadlight-best'))||0}catch{}
+const TAU=Math.PI*2;
+const stars=Array.from({length:95},(_,i)=>({x:((i*137.508)%1000)/1000,y:((i*79.13)%1000)/1000,r:i%7===0?1.5:.7}));
+function resize(){W=innerWidth;H=innerHeight;dpr=Math.min(devicePixelRatio||1,2);canvas.width=W*dpr;canvas.height=H*dpr;scale=Math.min(W/480,H/850);ctx.setTransform(dpr,0,0,dpr,0,0)}
+addEventListener('resize',resize);resize();
+function sound(kind){try{audio??=new(window.AudioContext||window.webkitAudioContext)();audio.resume();const now=audio.currentTime;const notes=kind==='perfect'?[440,660,880]:kind==='hit'?[330,495]:kind==='fail'?[150,95]:kind==='launch'?[270,540]:[220,330,440];notes.forEach((n,i)=>{const o=audio.createOscillator(),g=audio.createGain();o.type=kind==='fail'?'triangle':'sine';o.frequency.setValueAtTime(n,now+i*.065);g.gain.setValueAtTime(0,now+i*.065);g.gain.linearRampToValueAtTime(.09,now+i*.065+.01);g.gain.exponentialRampToValueAtTime(.001,now+i*.065+.24);o.connect(g);g.connect(audio.destination);o.start(now+i*.065);o.stop(now+i*.065+.25)})}catch{}}
+function targetFor(n){return {x:240+Math.sin(n*2.13)*105,y:-n*280,r:Math.max(29,43-n*.55),phase:n*1.8}}
+function newRun(){run={n:0,score:0,lives:3,combo:0,angle:-2.9,age:0,source:{x:240,y:0,r:35},target:targetFor(1),cam:0,flight:null,trail:[],particles:[],toast:'',toastTime:0,flash:0,lock:.15,history:[]};mode='playing';sound('start')}
+function targetPos(){let t=run.target;return {x:t.x+Math.sin(clock*.65+t.phase)*Math.min(17,run.n*1.1),y:t.y}}
+function geometry(){const r=run,p={x:r.source.x+Math.cos(r.angle)*50,y:r.source.y+Math.sin(r.angle)*50},dir={x:Math.cos(r.angle),y:Math.sin(r.angle)},t=targetPos(),dx=t.x-p.x,dy=t.y-p.y,along=dx*dir.x+dy*dir.y,off=Math.abs(dx*dir.y-dy*dir.x);return {p,dir,t,along,off,good:along>0&&off<r.target.r,perfect:along>0&&off<r.target.r*.34}}
+function input(e){if(e.type==='keydown'&&(e.code!=='Space'||e.repeat))return;e.preventDefault();if(mode==='ready'){newRun();return}if(mode==='over'||mode==='won'){if(run.lock<=0)newRun();return}if(run.lock>0||run.flight)return;let g=geometry();sound('launch');run.flight={x:g.p.x,y:g.p.y,sx:g.p.x,sy:g.p.y,dx:g.dir.x,dy:g.dir.y,time:0,good:g.good,perfect:g.perfect,target:g.t,distance:g.good?g.along:330};run.trail=[];}
+addEventListener('keydown',input);canvas.addEventListener('pointerdown',input);
+addEventListener('blur',()=>{last=0});document.addEventListener('visibilitychange',()=>{last=0});
+function burst(x,y,color,count=24){for(let i=0;i<count;i++){const a=i*2.399;run.particles.push({x,y,vx:Math.cos(a)*(35+i*3),vy:Math.sin(a)*(35+i*3),life:1,color})}}
+function toast(s){run.toast=s;run.toastTime=1.7}
+function finish(won){mode=won?'won':'over';run.lock=.8;best=Math.max(best,run.score);try{localStorage.setItem('threadlight-best',best)}catch{}sound(won?'perfect':'fail')}
+function fail(){run.flight=null;run.lives--;run.combo=0;run.age=0;run.angle=-2.9;run.lock=.55;run.flash=.4;burst(run.source.x,run.source.y,'#fa9279');sound('fail');toast(run.lives?'A spark lost. Find the line.':'');if(!run.lives)finish(false)}
+function update(dt){clock+=dt;if(!run)return;const r=run;r.lock-=dt;r.toastTime-=dt;r.flash=Math.max(0,r.flash-dt);r.particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt});r.particles=r.particles.filter(p=>p.life>0);r.cam+=(r.source.y-r.cam)*Math.min(1,dt*5);if(mode!=='playing')return;
+if(r.flight){let f=r.flight;f.time+=dt;let travel=f.time*610;f.x=f.sx+f.dx*travel;f.y=f.sy+f.dy*travel;r.trail.push({x:f.x,y:f.y});if(r.trail.length>22)r.trail.shift();if(travel>=f.distance){if(f.good){r.n++;r.combo=f.perfect?r.combo+1:0;let gain=100+(f.perfect?50+Math.min(r.combo,5)*20:0);r.score+=gain;burst(f.target.x,f.target.y,f.perfect?'#f7d991':'#9cf1d8');toast(f.perfect?`PERFECT +${gain}`:`CONNECTED +${gain}`);sound(f.perfect?'perfect':'hit');r.history.push({...r.source});r.source={...f.target,r:r.target.r};r.target=targetFor(r.n+1);r.age=0;r.angle=-2.9;r.flight=null;r.lock=.2;if(r.n===20)finish(true)}else fail()}}else if(r.lock<=0){r.angle+=dt*(.83+Math.min(r.n,18)*.027);r.age+=dt;if(r.age>15)fail()}}
+function circle(x,y,r,color,width=1){ctx.beginPath();ctx.arc(x,y,r,0,TAU);if(width){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke()}else{ctx.fillStyle=color;ctx.fill()}}
+function text(s,x,y,size,color='#e6efe9',align='center',font='Arial'){ctx.fillStyle=color;ctx.font=`${size}px ${font}`;ctx.textAlign=align;ctx.fillText(s,x,y)}
+function line(x1,y1,x2,y2,color,width=1){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke()}
+function diamond(x,y,size,color){ctx.save();ctx.translate(x,y);ctx.rotate(Math.PI/4);ctx.fillStyle=color;ctx.fillRect(-size/2,-size/2,size,size);ctx.restore()}
+function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#08151e';ctx.fillRect(0,0,W,H);const glow=ctx.createRadialGradient(W*.5,H*.45,0,W*.5,H*.45,H*.65);glow.addColorStop(0,'#12323a');glow.addColorStop(1,'#08151e');ctx.fillStyle=glow;ctx.fillRect(0,0,W,H);stars.forEach(s=>{let y=(s.y*H+(run?run.cam*.08:clock*2))%H;if(y<0)y+=H;circle(s.x*W,y,s.r,'#91b9b8',0)});
+ctx.save();ctx.translate(W/2-240*scale,H/2-425*scale);ctx.scale(scale,scale);
+text('T H R E A D L I G H T',30,44,13,'#c0d9d5','left');text('ASTRA / 06',450,44,10,'#718f97','right');line(30,63,450,63,'#29434b');
+if(mode==='ready'){renderReady()}else{renderGame();if(mode==='over'||mode==='won')renderEnd()}
+ctx.restore();}
+function renderReady(){text('Carry the last light.',240,147,32);text('Twenty stars. One unbroken sky.',240,178,14,'#93b1b5');let a=-1.57+Math.sin(clock*1.2)*.58;circle(240,490,50,'#385c65');circle(240,490,35,'#6caba8',1.5);circle(240,490,28,'#163d43',0);diamond(240,490,12,'#a5e6d4');circle(240,318,43,'#9cf1d8',2);circle(240,318,14,'#ebd99d',1);diamond(240,318,9,'#f7d991');let x=240+Math.cos(a)*50,y=490+Math.sin(a)*50;ctx.setLineDash([3,8]);line(x,y,x+Math.cos(a)*155,y+Math.sin(a)*155,'#87c8bf');ctx.setLineDash([]);circle(x,y,5,'#e8fff5',0);text('NEXT STAR',240,252,10,'#9bbbbb');text('Wait for the dotted path to enter the ring.',240,589,14,'#aec9c9');text('Then send your spark.',240,614,14,'#aec9c9');ctx.fillStyle='#c8f2dc';ctx.beginPath();ctx.roundRect(108,664,264,55,28);ctx.fill();text('PRESS SPACE OR TAP',240,698,13,'#12323a');text(best?`BEST ${best.toLocaleString()}`:'A SMALL GAME ABOUT FINDING YOUR MOMENT',240,758,10,'#73979d')}
+function renderGame(){const r=run,g=geometry(),oy=574-r.cam;const screenY=y=>y+oy;
+text(String(r.score).padStart(5,'0'),30,107,29,'#ecf4e9','left','monospace');text('SIGNAL',30,128,9,'#71929a','left');text(`${String(r.n).padStart(2,'0')} / 20`,450,105,23,'#c3dcd6','right','monospace');text(['THE QUIET REACH','THE DRIFT','THE DEEP FIELD','THE HOME STRETCH'][Math.min(3,Math.floor(r.n/5))],450,128,9,'#71929a','right');
+for(let i=0;i<20;i++)line(30+i*21.2,151,44+i*21.2,151,i<r.n?'#a6e6cd':'#29434b',3);
+ctx.save();ctx.beginPath();ctx.rect(0,174,480,512);ctx.clip();
+r.history.slice(-3).forEach((p,i,arr)=>{let next=arr[i+1]||r.source;line(p.x,screenY(p.y),next.x,screenY(next.y),'#366767',1);circle(p.x,screenY(p.y),6,'#527f7d',0)});
+const tx=r.flight?.good?r.flight.target.x:g.t.x,ty=r.flight?.good?r.flight.target.y:g.t.y;
+if(r.n<20){let rad=r.target.r;circle(tx,screenY(ty),rad+9+Math.sin(clock*2)*3,'#284c54');circle(tx,screenY(ty),rad,g.good&&!r.flight?'#b9f8da':'#7aa7aa',g.good?2.5:1.5);circle(tx,screenY(ty),rad*.34,'#aa986e',1);diamond(tx,screenY(ty),9,'#f5d69d');text(String(r.n+1).padStart(2,'0'),tx,screenY(ty)-rad-21,11,'#82a5ac','center','monospace');}
+circle(r.source.x,screenY(r.source.y),50,'#31515c');circle(r.source.x,screenY(r.source.y),r.source.r,'#659b98',1.5);circle(r.source.x,screenY(r.source.y),r.source.r-7,'#153b43',0);diamond(r.source.x,screenY(r.source.y),12,'#b8efdb');
+if(!r.flight&&mode==='playing'){ctx.beginPath();ctx.arc(r.source.x,screenY(r.source.y),59,-Math.PI/2,-Math.PI/2+TAU*(1-r.age/15));ctx.strokeStyle=r.age>11?'#ed9c80':'#496c70';ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([3,9]);line(g.p.x,screenY(g.p.y),g.p.x+g.dir.x*370,screenY(g.p.y+g.dir.y*370),g.good?(g.perfect?'#f5d69d':'#b9f8da'):'#567981',g.good?2:1);ctx.setLineDash([]);circle(g.p.x,screenY(g.p.y),12,g.good?'#356a61':'#234b52',0);circle(g.p.x,screenY(g.p.y),5,'#effff0',0);if(g.good){text(g.perfect?'PERFECT LINE':'SEND IT',r.source.x,screenY(r.source.y)+94,13,g.perfect?'#f5d69d':'#b9f8da')}}
+if(r.flight){r.trail.forEach((p,i)=>circle(p.x,screenY(p.y),i/r.trail.length*4,'#9ce8d4',0));circle(r.flight.x,screenY(r.flight.y),6,'#f4f6d6',0)}
+r.particles.forEach(p=>{ctx.globalAlpha=p.life;circle(p.x,screenY(p.y),2.5,p.color,0)});ctx.globalAlpha=1;ctx.restore();
+if(r.toastTime>0){ctx.globalAlpha=Math.min(1,r.toastTime*2);text(r.toast,240,208,14,r.toast.startsWith('PERFECT')?'#f5d69d':'#beddd5');ctx.globalAlpha=1}
+for(let i=0;i<3;i++)diamond(217+i*23,721,8,i<r.lives?'#f3d8a0':'#304850');text('SPARKS REMAINING',240,747,9,'#799ba2');if(r.n===0&&r.age<8)text('Line up with the next ring. Send your spark.',240,786,12,'#92b1b7');else text(r.combo>1?`${r.combo} PERFECT CONNECTIONS IN A ROW`:'THE SMALL GOLD RING IS WORTH MORE',240,786,9,'#92b1b7');if(r.flash){ctx.fillStyle=`rgba(220,95,75,${r.flash*.2})`;ctx.fillRect(0,165,480,520)}}
+function renderEnd(){ctx.fillStyle='rgba(5,18,26,.92)';ctx.fillRect(0,172,480,510);text(mode==='won'?'THE SKY IS HOME':'THE SIGNAL FADES',240,256,11,'#b4d2c7');text(mode==='won'?'You threaded the night.':'A little further next time.',240,306,29);text(`${run.n} of 20 stars connected`,240,342,15,'#98b6b9');text(run.score.toLocaleString(),240,419,58,'#f0e4bc','center','monospace');text(`BEST ${best.toLocaleString()}`,240,456,11,'#96b2ad');ctx.fillStyle='#c8f2dc';ctx.beginPath();ctx.roundRect(108,521,264,55,28);ctx.fill();text('TAP TO SEND ANOTHER',240,555,12,'#12323a');text('Space works, too.',240,610,12,'#7d9da6')}
+function frame(t){const dt=last?Math.min((t-last)/1000,.04):0;last=t;update(dt);render();requestAnimationFrame(frame)}requestAnimationFrame(frame);
+</script></body></html>
