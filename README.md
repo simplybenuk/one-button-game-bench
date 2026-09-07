@@ -1,5 +1,7 @@
 # One Button Game Bench
 
+[https://simplybenuk.github.io/one-button-game-bench/](https://simplybenuk.github.io/one-button-game-bench/)
+
 A simple benchmark for testing the game-building capabilities of AI models.
 
 Each model receives the **same prompt**, the **same technical constraints**, and its own directory in this repository.
