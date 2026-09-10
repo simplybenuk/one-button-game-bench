@@ -337,7 +337,6 @@ class Game {
   initCanvas() {
     // Sharp high DPI rendering
     const dpr = window.devicePixelRatio || 1;
-    const rect = this.canvas.getBoundingClientRect();
     
     // Setup virtual dimensions keeping 480x800 aspect ratio nicely
     const ratio = 480 / 800;
@@ -352,6 +351,8 @@ class Game {
     
     this.canvas.width = w * dpr;
     this.canvas.height = h * dpr;
+    this.canvas.style.width = `${w}px`;
+    this.canvas.style.height = `${h}px`;
     this.ctx.scale(dpr, dpr);
     
     this.width = w;
@@ -367,16 +368,22 @@ class Game {
     const triggerAction = (e) => {
       if (e) {
         if (e.key && e.key !== ' ' && e.key !== 'Spacebar') return;
+        if (e.target && e.target.closest('#audio-toggle')) return;
         e.preventDefault();
       }
       this.handleAction();
     };
 
     window.addEventListener('keydown', triggerAction);
-    this.canvas.addEventListener('mousedown', triggerAction);
-    this.canvas.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      triggerAction();
+    window.addEventListener('mousedown', (e) => {
+      if (e.button === 0) { // Left click only
+        triggerAction(e);
+      }
+    });
+    window.addEventListener('touchstart', (e) => {
+      if (e.target && e.target.closest('#audio-toggle')) return;
+      if (e.cancelable) e.preventDefault();
+      triggerAction(e);
     }, { passive: false });
 
     // Audio toggle
