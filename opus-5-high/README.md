@@ -1,5 +1,7 @@
 # WICK
 
+**Opus 5 High** — One Button Game Bench entry.
+
 A one-button arcade game about a lantern on a winch chain, swinging inside a dark round tower.
 
 **Play:** open `index.html`.
